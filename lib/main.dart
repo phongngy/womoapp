@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:womoapp/Screen/homepage.dart';
+import 'package:womoapp/injector.dart' as injector;
 
-void main() {
+main() {
   WidgetsFlutterBinding.ensureInitialized();
+  injector.init();
   runApp(const MyApp());
 }
 
@@ -33,6 +35,6 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
-    return HomePage();
+    return const HomePage();
   }
 }

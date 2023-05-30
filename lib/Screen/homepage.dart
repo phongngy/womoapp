@@ -27,10 +27,8 @@ class _HomePageState extends State<HomePage> {
             ),
             OutlinedButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => Stellplatz()),
-                );
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => Stellplatz()));
               },
               child: const Text("Stellplatz eintragen"),
             ),
