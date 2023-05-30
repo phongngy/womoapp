@@ -7,6 +7,7 @@ import 'package:womoapp/Widget/grundausstattung.dart';
 import 'package:womoapp/Widget/textlabel.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:womoapp/injector.dart';
+import 'package:intl/intl.dart';
 
 class Stellplatz extends StatefulWidget {
   Stellplatz({super.key});
@@ -24,13 +25,22 @@ class _StellplatzState extends State<Stellplatz> {
   //to Show Image on Screen
   List imgpathlist = [];
 
+  final _dateformatter = DateFormat('dd.MM.yyy');
+  late var _selectedDate;
+  List<String> _besuche = [];
+  final _datumCtrl = TextEditingController();
+
   @override
   initState() {
+    _selectedDate = _dateformatter.format(DateTime.now());
+    _datumCtrl.text = _dateformatter.format(DateTime.now());
+
     super.initState();
   }
 
   @override
   void dispose() {
+    _datumCtrl.dispose();
     super.dispose();
   }
 
@@ -68,6 +78,7 @@ class _StellplatzState extends State<Stellplatz> {
                     SizedBox(
                       width: 250,
                       child: TextFormField(
+                        controller: _datumCtrl,
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
                           suffixIcon: Align(
@@ -75,14 +86,55 @@ class _StellplatzState extends State<Stellplatz> {
                             heightFactor: 1.0,
                             child: IconButton(
                               icon: const Icon(Icons.calendar_month),
-                              onPressed: () {},
+                              onPressed: () {
+                                _selectDate(context);
+                              },
                             ),
                           ),
                         ),
                       ),
                     ),
-                    const Text("2x besucht"),
-                    IconButton(onPressed: () {}, icon: const Icon(Icons.info)),
+                    Text("${_besuche.length}x besucht"),
+                    IconButton(
+                        onPressed: () {
+                          showDialog(
+                              barrierDismissible: true,
+                              context: context,
+                              builder: (BuildContext context) {
+                                return SimpleDialog(
+                                  title:
+                                      const Center(child: Text("Besuche am")),
+                                  children: [
+                                    SingleChildScrollView(
+                                      child: Column(children: [
+                                        for (int i = 0;
+                                            i < _besuche.length;
+                                            i++)
+                                          Card(
+                                            child: Row(children: [
+                                              Text(_besuche[i]),
+                                              IconButton(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _besuche.removeAt(i);
+                                                      Navigator.pop(context);
+                                                    });
+                                                  },
+                                                  icon:
+                                                      const Icon(Icons.delete))
+                                            ]),
+                                          ),
+                                        TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: const Text("OK"))
+                                      ]),
+                                    )
+                                  ],
+                                );
+                              });
+                        },
+                        icon: const Icon(Icons.info)),
                   ],
                 ),
                 Row(
@@ -105,13 +157,32 @@ class _StellplatzState extends State<Stellplatz> {
                         icon: const Icon(Icons.camera_alt)),
                   ],
                 ),
-                CarouselSlider(
-                    items: imgpathlist.map((e) => Image.file(File(e))).toList(),
-                    options: CarouselOptions()),
+                if (imglist.isNotEmpty)
+                  CarouselSlider(
+                      items:
+                          imgpathlist.map((e) => Image.file(File(e))).toList(),
+                      options: CarouselOptions()),
                 Grundausstatung(),
                 ElevatedButton(
                     onPressed: () {}, child: const Text("Speichern")),
               ])),
         ));
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: DateTime.now(),
+        firstDate: DateTime(2015, 8),
+        lastDate: DateTime(2101));
+    if (picked != null) {
+      _besuche.add(_dateformatter.format(picked));
+      setState(() {
+        _datumCtrl.text = _dateformatter.format(picked);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("${_datumCtrl.text} wurde hinzugefuegt"),
+        ));
+      });
+    }
   }
 }

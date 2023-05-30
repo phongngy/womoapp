@@ -19,7 +19,10 @@ class _HomePageState extends State<HomePage> {
             RichText(
               text: const TextSpan(
                 text: "WoMo",
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 40),
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 40,
+                    color: Colors.black),
               ),
             ),
             const SizedBox(
