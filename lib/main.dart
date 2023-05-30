@@ -1,10 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:womoapp/Screen/homepage.dart';
 import 'package:womoapp/injector.dart' as injector;
 
-main() {
+main() async {
   WidgetsFlutterBinding.ensureInitialized();
   injector.init();
+  var permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      return Future.error('Location permissions are denied');
+    }
+  }
+
+  if (permission == LocationPermission.deniedForever) {
+    return Future.error(
+        'Location permissions are permanently denied, we cannot request permissions.');
+  }
+
   runApp(const MyApp());
 }
 

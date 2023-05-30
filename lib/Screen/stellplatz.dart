@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:womoapp/Widget/grundausstattung.dart';
 import 'package:womoapp/Widget/textlabel.dart';
@@ -48,10 +49,17 @@ class _StellplatzState extends State<Stellplatz> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       const Text("GPS"),
-                      Text((24.089324).toString()),
-                      Text((84.0324).toString()),
+                      Text(_latitude.toStringAsFixed(4)),
+                      Text(_longitude.toStringAsFixed(4)),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          var tmp = await Geolocator.getCurrentPosition(
+                              desiredAccuracy: LocationAccuracy.high);
+                          setState(() {
+                            _latitude = tmp.latitude;
+                            _longitude = tmp.longitude;
+                          });
+                        },
                         icon: const Icon(Icons.gps_fixed),
                       ),
                     ]),
