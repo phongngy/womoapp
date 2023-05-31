@@ -24,15 +24,14 @@ class _StellplatzState extends State<Stellplatz> {
   List imglist = [];
   //to Show Image on Screen
   List imgpathlist = [];
+  bool _loadingGPSLesen = false;
 
   final _dateformatter = DateFormat('dd.MM.yyy');
-  late var _selectedDate;
   List<String> _besuche = [];
   final _datumCtrl = TextEditingController();
 
   @override
   initState() {
-    _selectedDate = _dateformatter.format(DateTime.now());
     _datumCtrl.text = _dateformatter.format(DateTime.now());
 
     super.initState();
@@ -61,17 +60,23 @@ class _StellplatzState extends State<Stellplatz> {
                       const Text("GPS"),
                       Text(_latitude.toStringAsFixed(4)),
                       Text(_longitude.toStringAsFixed(4)),
-                      IconButton(
-                        onPressed: () async {
-                          var tmp = await Geolocator.getCurrentPosition(
-                              desiredAccuracy: LocationAccuracy.high);
-                          setState(() {
-                            _latitude = tmp.latitude;
-                            _longitude = tmp.longitude;
-                          });
-                        },
-                        icon: const Icon(Icons.gps_fixed),
-                      ),
+                      _loadingGPSLesen
+                          ? const CircularProgressIndicator()
+                          : IconButton(
+                              onPressed: () async {
+                                setState(() {
+                                  _loadingGPSLesen = true;
+                                });
+                                var tmp = await Geolocator.getCurrentPosition(
+                                    desiredAccuracy: LocationAccuracy.high);
+                                setState(() {
+                                  _latitude = tmp.latitude;
+                                  _longitude = tmp.longitude;
+                                  _loadingGPSLesen = false;
+                                });
+                              },
+                              icon: const Icon(Icons.gps_fixed),
+                            )
                     ]),
                 Row(
                   children: [
@@ -80,7 +85,7 @@ class _StellplatzState extends State<Stellplatz> {
                       child: TextFormField(
                         controller: _datumCtrl,
                         decoration: InputDecoration(
-                          border: OutlineInputBorder(),
+                          border: const OutlineInputBorder(),
                           suffixIcon: Align(
                             widthFactor: 1.0,
                             heightFactor: 1.0,
@@ -164,7 +169,10 @@ class _StellplatzState extends State<Stellplatz> {
                       options: CarouselOptions()),
                 Grundausstatung(),
                 ElevatedButton(
-                    onPressed: () {}, child: const Text("Speichern")),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text("Speichern")),
               ])),
         ));
   }
