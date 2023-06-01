@@ -1,13 +1,19 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:womoapp/Widget/grundausstattung.dart';
 import 'package:womoapp/Widget/textlabel.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:womoapp/databaseHelper.dart';
 import 'package:womoapp/injector.dart';
 import 'package:intl/intl.dart';
+
+bool _toilette = false,
+    _dusche = false,
+    _entsorgung = false,
+    _frischwasser = false;
 
 class Stellplatz extends StatefulWidget {
   Stellplatz({super.key});
@@ -21,7 +27,7 @@ class _StellplatzState extends State<Stellplatz> {
   double _longitude = 0;
   final _imagePicker = getItInjector<ImagePicker>();
   //to save in Database
-  List imglist = [];
+  List<Uint8List> imglist = [];
   //to Show Image on Screen
   List imgpathlist = [];
   bool _loadingGPSLesen = false;
@@ -29,18 +35,24 @@ class _StellplatzState extends State<Stellplatz> {
   final _dateformatter = DateFormat('dd.MM.yyy');
   List<String> _besuche = [];
   final _datumCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController();
 
   @override
   initState() {
     _datumCtrl.text = _dateformatter.format(DateTime.now());
-
+    initDb();
     super.initState();
   }
 
   @override
   void dispose() {
     _datumCtrl.dispose();
+    _nameCtrl.dispose();
     super.dispose();
+  }
+
+  void initDb() async {
+    await DatabaseHelper.instance.database;
   }
 
   @override
@@ -53,7 +65,10 @@ class _StellplatzState extends State<Stellplatz> {
           child: Form(
               key: _formKey,
               child: Column(children: [
-                TextFormField(decoration: TextLabel("Stellplatz", true)),
+                TextFormField(
+                  decoration: TextLabel("Stellplatz", true),
+                  controller: _nameCtrl,
+                ),
                 Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
@@ -147,19 +162,19 @@ class _StellplatzState extends State<Stellplatz> {
                     const Text("Bilder hinzufügen:"),
                     IconButton(
                         onPressed: () async {
-                          imglist.add(await _imagePicker
+                          await _imagePicker
                               .pickImage(
                                   source: ImageSource.camera,
                                   maxHeight: 200,
                                   maxWidth: 200)
                               .then((value) {
                             setState(() {
-                              imglist.add(value!.readAsBytes());
+                              imglist.add(File(value!.path).readAsBytesSync());
                               imgpathlist.add(value.path);
                             });
-                          }));
+                          });
                         },
-                        icon: const Icon(Icons.camera_alt)),
+                        icon: const Icon(Icons.camera_alt))
                   ],
                 ),
                 if (imglist.isNotEmpty)
@@ -169,8 +184,19 @@ class _StellplatzState extends State<Stellplatz> {
                       options: CarouselOptions()),
                 Grundausstatung(),
                 ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
+                    onPressed: () async {
+                      await DatabaseHelper.instance
+                          .insertStellplatzKomplett(
+                              _nameCtrl.text,
+                              _longitude,
+                              _latitude,
+                              _toilette,
+                              _dusche,
+                              _entsorgung,
+                              _frischwasser,
+                              _besuche,
+                              imglist)
+                          .then((value) => Navigator.pop(context));
                     },
                     child: const Text("Speichern")),
               ])),
@@ -192,5 +218,58 @@ class _StellplatzState extends State<Stellplatz> {
         ));
       });
     }
+  }
+}
+
+class Grundausstatung extends StatefulWidget {
+  Grundausstatung({super.key});
+
+  @override
+  State<Grundausstatung> createState() => _GrundausstatungState();
+}
+
+class _GrundausstatungState extends State<Grundausstatung> {
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(children: [
+        IconButton(
+          onPressed: () {},
+          icon: const Icon(Icons.add),
+        ),
+        CheckboxListTile(
+            value: _toilette,
+            title: const Text("Toilette"),
+            onChanged: (bool? value) {
+              setState(() {
+                _toilette = !_toilette;
+              });
+            }),
+        CheckboxListTile(
+            value: _dusche,
+            title: const Text("Dusche"),
+            onChanged: (bool? value) {
+              setState(() {
+                _dusche = !_dusche;
+              });
+            }),
+        CheckboxListTile(
+            value: _entsorgung,
+            title: const Text("Entsorgung"),
+            onChanged: (bool? value) {
+              setState(() {
+                _entsorgung = !_entsorgung;
+              });
+            }),
+        CheckboxListTile(
+            value: _frischwasser,
+            title: const Text("Frichwasser"),
+            onChanged: (bool? value) {
+              setState(() {
+                _frischwasser = !_frischwasser;
+              });
+            }),
+      ]),
+    );
   }
 }
