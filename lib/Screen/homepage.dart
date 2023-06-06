@@ -21,33 +21,45 @@ class _HomePageState extends State<HomePage> {
                 text: "WoMo",
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 40,
+                    fontSize: 80,
                     color: Colors.black),
               ),
             ),
             const SizedBox(
-              height: 20,
+              height: 100,
             ),
-            OutlinedButton(
-              onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => Stellplatz()));
-              },
-              child: const Text("Stellplatz eintragen"),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            OutlinedButton(
-              onPressed: () {},
-              child: const Text("Checkliste"),
+            SizedBox(
+              height: 50,
+              width: 200,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => Stellplatz()));
+                },
+                child: const Text("Stellplatz eintragen"),
+              ),
             ),
             const SizedBox(
-              height: 20,
+              height: 30,
             ),
-            OutlinedButton(
-              onPressed: () {},
-              child: const Text("Verwaltung"),
+            SizedBox(
+              height: 50,
+              width: 200,
+              child: ElevatedButton(
+                onPressed: () {},
+                child: const Text("Checkliste"),
+              ),
+            ),
+            const SizedBox(
+              height: 30,
+            ),
+            SizedBox(
+              height: 50,
+              width: 200,
+              child: ElevatedButton(
+                onPressed: () {},
+                child: const Text("Verwaltung"),
+              ),
             ),
           ],
         ),

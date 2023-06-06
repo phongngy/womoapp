@@ -64,142 +64,148 @@ class _StellplatzState extends State<Stellplatz> {
         body: SingleChildScrollView(
           child: Form(
               key: _formKey,
-              child: Column(children: [
-                TextFormField(
-                  decoration: TextLabel("Stellplatz", true),
-                  controller: _nameCtrl,
-                ),
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(children: [
+                  TextFormField(
+                    decoration: TextLabel("Stellplatz", true),
+                    controller: _nameCtrl,
+                  ),
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        const Text("GPS"),
+                        Text(_latitude.toStringAsFixed(4)),
+                        Text(_longitude.toStringAsFixed(4)),
+                        _loadingGPSLesen
+                            ? const CircularProgressIndicator()
+                            : IconButton(
+                                onPressed: () async {
+                                  setState(() {
+                                    _loadingGPSLesen = true;
+                                  });
+                                  var tmp = await Geolocator.getCurrentPosition(
+                                      desiredAccuracy: LocationAccuracy.high);
+                                  setState(() {
+                                    _latitude = tmp.latitude;
+                                    _longitude = tmp.longitude;
+                                    _loadingGPSLesen = false;
+                                  });
+                                },
+                                icon: const Icon(Icons.gps_fixed),
+                              )
+                      ]),
+                  Row(
                     children: [
-                      const Text("GPS"),
-                      Text(_latitude.toStringAsFixed(4)),
-                      Text(_longitude.toStringAsFixed(4)),
-                      _loadingGPSLesen
-                          ? const CircularProgressIndicator()
-                          : IconButton(
-                              onPressed: () async {
-                                setState(() {
-                                  _loadingGPSLesen = true;
-                                });
-                                var tmp = await Geolocator.getCurrentPosition(
-                                    desiredAccuracy: LocationAccuracy.high);
-                                setState(() {
-                                  _latitude = tmp.latitude;
-                                  _longitude = tmp.longitude;
-                                  _loadingGPSLesen = false;
-                                });
-                              },
-                              icon: const Icon(Icons.gps_fixed),
-                            )
-                    ]),
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 250,
-                      child: TextFormField(
-                        controller: _datumCtrl,
-                        decoration: InputDecoration(
-                          border: const OutlineInputBorder(),
-                          suffixIcon: Align(
-                            widthFactor: 1.0,
-                            heightFactor: 1.0,
-                            child: IconButton(
-                              icon: const Icon(Icons.calendar_month),
-                              onPressed: () {
-                                _selectDate(context);
-                              },
+                      SizedBox(
+                        width: 200,
+                        child: TextFormField(
+                          controller: _datumCtrl,
+                          decoration: InputDecoration(
+                            border: const OutlineInputBorder(),
+                            suffixIcon: Align(
+                              widthFactor: 1.0,
+                              heightFactor: 1.0,
+                              child: IconButton(
+                                icon: const Icon(Icons.calendar_month),
+                                onPressed: () {
+                                  _selectDate(context);
+                                },
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    Text("${_besuche.length}x besucht"),
-                    IconButton(
-                        onPressed: () {
-                          showDialog(
-                              barrierDismissible: true,
-                              context: context,
-                              builder: (BuildContext context) {
-                                return SimpleDialog(
-                                  title:
-                                      const Center(child: Text("Besuche am")),
-                                  children: [
-                                    SingleChildScrollView(
-                                      child: Column(children: [
-                                        for (int i = 0;
-                                            i < _besuche.length;
-                                            i++)
-                                          Card(
-                                            child: Row(children: [
-                                              Text(_besuche[i]),
-                                              IconButton(
-                                                  onPressed: () {
-                                                    setState(() {
-                                                      _besuche.removeAt(i);
-                                                      Navigator.pop(context);
-                                                    });
-                                                  },
-                                                  icon:
-                                                      const Icon(Icons.delete))
-                                            ]),
-                                          ),
-                                        TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context),
-                                            child: const Text("OK"))
-                                      ]),
-                                    )
-                                  ],
-                                );
+                      const Spacer(),
+                      Text("${_besuche.length}x besucht"),
+                      IconButton(
+                          onPressed: () {
+                            showDialog(
+                                barrierDismissible: true,
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return SimpleDialog(
+                                    title:
+                                        const Center(child: Text("Besuche am")),
+                                    children: [
+                                      SingleChildScrollView(
+                                        child: Column(children: [
+                                          for (int i = 0;
+                                              i < _besuche.length;
+                                              i++)
+                                            Card(
+                                              child: Row(children: [
+                                                Text(_besuche[i]),
+                                                IconButton(
+                                                    onPressed: () {
+                                                      setState(() {
+                                                        _besuche.removeAt(i);
+                                                        Navigator.pop(context);
+                                                      });
+                                                    },
+                                                    icon: const Icon(
+                                                        Icons.delete))
+                                              ]),
+                                            ),
+                                          TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                              child: const Text("OK"))
+                                        ]),
+                                      )
+                                    ],
+                                  );
+                                });
+                          },
+                          icon: const Icon(Icons.info)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Text("Bilder hinzufügen:"),
+                      IconButton(
+                          onPressed: () async {
+                            await _imagePicker
+                                .pickImage(
+                                    source: ImageSource.camera,
+                                    maxHeight: 200,
+                                    maxWidth: 200)
+                                .then((value) {
+                              setState(() {
+                                imglist
+                                    .add(File(value!.path).readAsBytesSync());
+                                imgpathlist.add(value.path);
                               });
-                        },
-                        icon: const Icon(Icons.info)),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Text("Bilder hinzufügen:"),
-                    IconButton(
-                        onPressed: () async {
-                          await _imagePicker
-                              .pickImage(
-                                  source: ImageSource.camera,
-                                  maxHeight: 200,
-                                  maxWidth: 200)
-                              .then((value) {
-                            setState(() {
-                              imglist.add(File(value!.path).readAsBytesSync());
-                              imgpathlist.add(value.path);
                             });
-                          });
-                        },
-                        icon: const Icon(Icons.camera_alt))
-                  ],
-                ),
-                if (imglist.isNotEmpty)
-                  CarouselSlider(
-                      items:
-                          imgpathlist.map((e) => Image.file(File(e))).toList(),
-                      options: CarouselOptions()),
-                Grundausstatung(),
-                ElevatedButton(
-                    onPressed: () async {
-                      await DatabaseHelper.instance
-                          .insertStellplatzKomplett(
-                              _nameCtrl.text,
-                              _longitude,
-                              _latitude,
-                              _toilette,
-                              _dusche,
-                              _entsorgung,
-                              _frischwasser,
-                              _besuche,
-                              imglist)
-                          .then((value) => Navigator.pop(context));
-                    },
-                    child: const Text("Speichern")),
-              ])),
+                          },
+                          icon: const Icon(Icons.camera_alt))
+                    ],
+                  ),
+                  if (imglist.isNotEmpty)
+                    CarouselSlider(
+                        items: imgpathlist
+                            .map((e) => Image.file(File(e)))
+                            .toList(),
+                        options: CarouselOptions()),
+                  Grundausstatung(),
+                  ElevatedButton(
+                      onPressed: () async {
+                        await DatabaseHelper.instance
+                            .insertStellplatzKomplett(
+                                _nameCtrl.text,
+                                _longitude,
+                                _latitude,
+                                _toilette,
+                                _dusche,
+                                _entsorgung,
+                                _frischwasser,
+                                _besuche,
+                                imglist)
+                            .then((value) => Navigator.pop(context));
+                      },
+                      child: const Text("Speichern")),
+                ]),
+              )),
         ));
   }
 
